@@ -7,13 +7,13 @@
         echo " : ".$title;
       }
     ?></title>
-  <xmp theme="spacelab" style="display:none;">
+  <xmp theme="cerulean" style="display:none;">
 <?php
   if (isset($_GET['p'])) {
     $file = $_GET['p'].".md";
     if (file_exists($file)) include $file;
     else echo "# Not found\n\nThis blog entry is missing.\n\n";
-    echo "[Back to home](/) | [Raw code]($file)";
+    echo "\n[Back to home](/) | [Raw code]($file)";
 ?>
   </xmp>
   <div class="container" id="disqus_thread"></div>
@@ -31,7 +31,7 @@
   }
   else {
     echo "Post | Date\n-- | --\n";
-    echo `ls -lt | grep md | perl -pe 's/.* (.*?)  (.*) .* (.*)\.md/[\\3](\/?p=\\3) | \\1 \\2/g' | perl -pe 's/_(?=.*\])/ /g'`;
+    echo `ls -lt --time-style='+%d %b %Y' | grep md | perl -pe 's/.* (.*?) (.*) (.*) (.*)\.md/[\\4](\/?p=\\4) | \\1 \\2 \\3/g' | perl -pe 's/_(?=.*\])/ /g'`;
     echo "</xmp>";
   }
 ?>
