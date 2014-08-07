@@ -12,7 +12,7 @@ easy as writing a (Github Flavored) Markdown text file and uplading it to the
 same folder as `index.php`.
 
 *Warnings: your Markdown file must have `.md` extension and `php` must be able
-to run said programs.
+to run said programs.*
 
 Comments are available via Disqus, Markdown conversion and themes are
 available from [StrapdownJs](http://strapdownjs.com/).

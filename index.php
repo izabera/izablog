@@ -2,7 +2,7 @@
 <html>
   <title>izablog<?php
       if (isset($_GET['p'])) {
-        $title = $_GET['p'];
+        $title = htmlspecialchars($_GET['p']);
         $title = str_replace("_"," ",$title);
         echo " : ".$title;
       }
@@ -11,14 +11,14 @@
 <?php
   if (isset($_GET['p'])) {
     $file = $_GET['p'].".md";
-    if (file_exists($file)) include $file;
-    else echo "# Not found\n\nThis blog entry is missing.\n\n";
-    echo "\n[Back to home](/) | [Raw code]($file)";
+    if (file_exists(htmlspecialchars($file))) {
+      include $file;
+      echo "\n[Back to home](/) | [Raw code]($file)";
 ?>
   </xmp>
   <div class="container" id="disqus_thread"></div>
   <script type="text/javascript">
-    var disqus_shortname = 'NAME-OF-YOUR-BLOG';
+    var disqus_shortname = 'izablog';
     (function() {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
       dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
@@ -28,6 +28,7 @@
   <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
   <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
 <?php
+    } else echo "# Not found\n\nThis blog entry is missing.\n\n[Back to home](/)\n</xmp>";
   }
   else {
     echo "Post | Date\n-- | --\n";
@@ -37,4 +38,3 @@
 ?>
   <script src="http://strapdownjs.com/v/0.2/strapdown.js"></script>
 </html>
-
