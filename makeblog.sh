@@ -61,6 +61,10 @@ function generateindex () {
 rm -rf temp html 2> /dev/null && mkdir temp html
 cd blog
 source settings
+cp defaults/head head
+cp defaults/indexhead indexhead
+cp defaults/bottom bottom
+cp defaults/indexbottom indexbottom
 sed -i "s/YYY/$title/" head
 sed -i "s/YYY/$title/" indexhead
 disqussify
