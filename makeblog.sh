@@ -103,5 +103,5 @@ echo
 cd ..
 cat blog/indexhead temp/index blog/indexbottom > index.html
 rm -rf temp
-#git add -A && git commit -m "$(date)" && git push
+git add -A && git commit -m "$(date)" && git push
 
