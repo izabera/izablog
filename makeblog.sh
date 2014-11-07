@@ -39,8 +39,8 @@ function disqussify () {
 function generateindex () {
   wordcount=0
   echo -n "<h2><a href='html/$newfile" >> index
-  [[ "$rewrite_urls" == "false" ]] && echo .html >> index
-  echo "'>" >> index
+  [[ "$rewrite_urls" == "false" ]] && echo -n .html >> index
+  echo -n "'>" >> index
   head -n1 "$file" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' >> index
   echo "</a></h2>" >> index
   [[ "$show_date_in_index" == "true" ]] && sed "s/XXX/$timestamp/" < ../blog/timestamp >> index
@@ -87,7 +87,7 @@ printbar $count $total "Markdown conversion"
 for file in *; do
   title="$(head -n1 "$file")"
   newfile="$(echo "$title" | tr 'A-Z ' 'a-z-' | tr -dc 'a-z-')" #with no extension
-  timestamp="$(date '+%c' -d @${file%-})"
+  timestamp="$(date '+%c' -d @${file%-*})"
   sed "s/XXX/$title/" < ../blog/head > ../html/"$newfile".html
   [[ "$show_date_in_article" == "true" ]] && sed "s/XXX/$timestamp/" < ../blog/timestamp >> ../html/"$newfile".html
   python -m markdown "$file" >> ../html/"$newfile".html
