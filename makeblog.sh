@@ -18,6 +18,7 @@ function printbar () {
   echo -n "$(tput sgr 0)]"
 }
 
+
 function disqussify () {
   if [[ "$disqus" == "true" ]]; then
     echo "<div class='container' id='disqus_thread'></div>" > disqus
@@ -36,9 +37,13 @@ function disqussify () {
 
 
 function generateindex () {
-  echo "<h2><a href='html/$newfile'>" >> index
-  head -n1 "$file" >> index
+  wordcount=0
+  echo -n "<h2><a href='html/$newfile" >> index
+  [[ "$rewrite_urls" == "false" ]] && echo .html >> index
+  echo "'>" >> index
+  head -n1 "$file" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' >> index
   echo "</a></h2>" >> index
+  [[ "$show_date_in_index" == "true" ]] && sed "s/XXX/$timestamp/" < ../blog/timestamp >> index
   if (( preview_words > 0 )); then
     echo "<p>" >> index
     sed '1,2d' "$file" | while read line; do
@@ -80,15 +85,16 @@ cd ../temp
 count=0
 printbar $count $total "Markdown conversion"
 for file in *; do
-  newfile="$(head -n1 "$file" | tr 'A-Z ' 'a-z-' | tr -dc 'a-z-').html"
+  title="$(head -n1 "$file")"
+  newfile="$(echo "$title" | tr 'A-Z ' 'a-z-' | tr -dc 'a-z-')" #with no extension
   timestamp="$(date '+%c' -d @${file%-})"
-  cp ../blog/head ../html/"$newfile"
-  [[ "$show_date_in_article" == "true" ]] && sed "s/XXX/$timestamp/" < ../blog/timestamp >> ../html/"$newfile"
-  python -m markdown "$file" >> ../html/"$newfile"
-  cat ../blog/bottom >> ../html/"$newfile"
+  sed "s/XXX/$title/" < ../blog/head > ../html/"$newfile".html
+  [[ "$show_date_in_article" == "true" ]] && sed "s/XXX/$timestamp/" < ../blog/timestamp >> ../html/"$newfile".html
+  python -m markdown "$file" >> ../html/"$newfile".html
+  cat ../blog/bottom >> ../html/"$newfile".html
   (( count++ ))
   printbar $count $total "Markdown conversion"
-  generateindex# "$file" "$timestamp" "$newfile"
+  generateindex
 done
 echo
 
