@@ -61,6 +61,8 @@ function generateindex () {
 rm -rf temp html 2> /dev/null && mkdir temp html
 cd blog
 source settings
+sed -i "s/YYY/$title/" head
+sed -i "s/YYY/$title/" indexhead
 disqussify
 cat disqus bottom > temp
 mv temp bottom
@@ -70,12 +72,12 @@ mv temp bottom
 cd ../src
 total=$(ls | wc -l)
 count=0
-printbar $count $total "Copying files"
+printbar $count $total "        Copying files"
 for file in *; do
   #with timestamp, when bash will glob our files they'll be sorted by date 
   cp "$file" $(mktemp -u -p ../temp/ "$(date '+%s' -r "$file")-XXXXXXXX")
   (( count++ ))
-  printbar $count $total "Copying files"
+  printbar $count $total "        Copying files"
 done
 echo
 
@@ -83,7 +85,7 @@ echo
 #markdownify
 cd ../temp
 count=0
-printbar $count $total "Markdown conversion"
+printbar $count $total "  Markdown conversion"
 for file in *; do
   title="$(head -n1 "$file")"
   newfile="$(echo "$title" | tr 'A-Z ' 'a-z-' | tr -dc 'a-z-')" #with no extension
@@ -93,7 +95,7 @@ for file in *; do
   python -m markdown "$file" >> ../html/"$newfile".html
   cat ../blog/bottom >> ../html/"$newfile".html
   (( count++ ))
-  printbar $count $total "Markdown conversion"
+  printbar $count $total "  Markdown conversion"
   generateindex
 done
 echo
@@ -103,5 +105,5 @@ echo
 cd ..
 cat blog/indexhead temp/index blog/indexbottom > index.html
 rm -rf temp
-git add -A && git commit -m "$(date)" && git push
+#git add -A && git commit -m "$(date)" && git push
 
