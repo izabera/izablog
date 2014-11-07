@@ -20,7 +20,7 @@ function printbar () {
 
 
 function disqussify () {
-  if [[ "$disqus" == "true" ]]; then
+  if [[ "$disqusplugin" == "true" ]]; then
     echo "<div class='container' id='disqus_thread'></div>" > disqus
     echo "<script type='text/javascript'>" >> disqus
     echo "  var disqus_shortname = '$disqus_name';" >> disqus
@@ -43,7 +43,7 @@ function generateindex () {
   echo -n "'>" >> index
   head -n1 "$file" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' >> index
   echo "</a></h2>" >> index
-  [[ "$show_date_in_index" == "true" ]] && sed "s/XXX/$timestamp/" < ../blog/timestamp >> index
+  [[ "$show_date_in_index" == "true" ]] && sed "s/XXX/$timestamp/" < ../blog/indextimestamp >> index
   if (( preview_words > 0 )); then
     echo "<p>" >> index
     sed '1,2d' "$file" | while read line; do
@@ -52,7 +52,7 @@ function generateindex () {
         (( wordcount++ ))
       done
     done
-    echo "</p>" >> index
+    echo "...</p><hr>" >> index
   fi
 }
 
@@ -79,7 +79,9 @@ count=0
 printbar $count $total "        Copying files"
 for file in *; do
   #with timestamp, when bash will glob our files they'll be sorted by date 
-  cp "$file" $(mktemp -u -p ../temp/ "$(date '+%s' -r "$file")-XXXXXXXX")
+  newfile=$(mktemp -u -p . "$(date '+%s' -r "$file")-XXXXXXXX")
+  cp "$file" ../temp/"$newfile"
+  echo "$newfile" >> ../temp/list
   (( count++ ))
   printbar $count $total "        Copying files"
 done
@@ -90,13 +92,14 @@ echo
 cd ../temp
 count=0
 printbar $count $total "  Markdown conversion"
-for file in *; do
+for file in $(sort -r list); do
   title="$(head -n1 "$file")"
   newfile="$(echo "$title" | tr 'A-Z ' 'a-z-' | tr -dc 'a-z-')" #with no extension
-  timestamp="$(date '+%c' -d @${file%-*})"
+  timestamp="$(date '+%c' -d @${file:2:10})"
   sed "s/XXX/$title/" < ../blog/head > ../html/"$newfile".html
-  [[ "$show_date_in_article" == "true" ]] && sed "s/XXX/$timestamp/" < ../blog/timestamp >> ../html/"$newfile".html
   python -m markdown "$file" >> ../html/"$newfile".html
+  [[ "$show_date_in_article" == "true" ]] && sed "s/XXX/$timestamp/" < ../blog/timestamp >> ../html/"$newfile".html
+  echo "<a href='/'>Back</a>" >> ../html/"$newfile".html
   cat ../blog/bottom >> ../html/"$newfile".html
   (( count++ ))
   printbar $count $total "  Markdown conversion"
@@ -109,5 +112,5 @@ echo
 cd ..
 cat blog/indexhead temp/index blog/indexbottom > index.html
 rm -rf temp
-#git add -A && git commit -m "$(date)" && git push
+[[ "$gitplugin" == "true" ]] && git add -A && git commit -m "$(date)" && git push
 

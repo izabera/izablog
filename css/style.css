@@ -1,0 +1,37 @@
+body {
+  background-color: rgb(61, 61, 61);
+  color: rgb(170, 170, 170);
+  font-family: sans-serif;
+  font-size: 12px;
+  margin: 0px;
+  border: 0px;
+  padding: 7px;
+}
+
+
+a {
+  color: inherit;
+  -webkit-transition: color 500ms ease;
+  -moz-transition: color 500ms ease;
+  -o-transition: color 500ms ease;
+  transition: color 500ms ease;
+  text-decoration: none;
+}
+
+
+a:hover {
+  color: #fff;
+}
+
+
+#timestamp {
+  position: relative;
+  float: right;
+}
+
+
+code {
+  font-family: Consolas, "Bitstream Vera Sans Mono", "Andale Mono", Monaco, "DejaVu Sans Mono", "Lucida Console", monospace;
+  color: rgb(210, 210, 210);
+}
+
