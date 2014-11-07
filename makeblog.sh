@@ -38,12 +38,12 @@ function disqussify () {
 
 function generateindex () {
   wordcount=0
-  echo -n "<h2><a href='html/$newfile" >> index
+  echo -n "<h1><a href='html/$newfile" >> index
   [[ "$rewrite_urls" == "false" ]] && echo -n .html >> index
   echo -n "'>" >> index
   head -n1 "$file" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' >> index
-  echo "</a></h2>" >> index
-  [[ "$show_date_in_index" == "true" ]] && sed "s/XXX/$timestamp/" < ../blog/indextimestamp >> index
+  echo "</a></h1>" >> index
+  [[ "$show_date_in_index" == "true" ]] && sed "s/XXX/$timestamp/" < ../blog/timestamp >> index
   if (( preview_words > 0 )); then
     echo "<p>" >> index
     sed '1,2d' "$file" | while read line; do
@@ -52,21 +52,22 @@ function generateindex () {
         (( wordcount++ ))
       done
     done
-    echo "...</p><hr>" >> index
+    echo -n "<a href='html/$newfile" >> index
+    [[ "$rewrite_urls" == "false" ]] && echo -n .html >> index
+    echo -n "'>(Read more)</a></p><hr>" >> index
   fi
 }
 
 
 #prepare
+[ -z "$1" ] && message=$(date) || message="$1"
 rm -rf temp html 2> /dev/null && mkdir temp html
 cd blog
 source settings
 cp defaults/head head
-cp defaults/indexhead indexhead
 cp defaults/bottom bottom
-cp defaults/indexbottom indexbottom
 sed -i "s/YYY/$title/" head
-sed -i "s/YYY/$title/" indexhead
+sed -i "s/XXX/$owner/" bottom
 disqussify
 cat disqus bottom > temp
 mv temp bottom
@@ -74,14 +75,25 @@ mv temp bottom
 
 #copy
 cd ../src
+cd indexed
 total=$(ls | wc -l)
+cd ../notindexed
+total=$(( total + $(ls | wc -l) ))
 count=0
 printbar $count $total "        Copying files"
 for file in *; do
   #with timestamp, when bash will glob our files they'll be sorted by date 
   newfile=$(mktemp -u -p . "$(date '+%s' -r "$file")-XXXXXXXX")
-  cp "$file" ../temp/"$newfile"
-  echo "$newfile" >> ../temp/list
+  cp "$file" ../../temp/"$newfile"
+  echo "$newfile" >> ../../temp/unlist
+  (( count++ ))
+  printbar $count $total "        Copying files"
+done
+cd ../indexed
+for file in *; do
+  newfile=$(mktemp -u -p . "$(date '+%s' -r "$file")-XXXXXXXX")
+  cp "$file" ../../temp/"$newfile"
+  echo "$newfile" >> ../../temp/list
   (( count++ ))
   printbar $count $total "        Copying files"
 done
@@ -89,17 +101,29 @@ echo
 
 
 #markdownify
-cd ../temp
+cd ../../temp
 count=0
 printbar $count $total "  Markdown conversion"
-for file in $(sort -r list); do
+for file in $(sort -r unlist); do
   title="$(head -n1 "$file")"
   newfile="$(echo "$title" | tr 'A-Z ' 'a-z-' | tr -dc 'a-z-')" #with no extension
-  timestamp="$(date '+%c' -d @${file:2:10})"
+  timestamp="$(date "$dateformat" -d @${file:2:10})"
   sed "s/XXX/$title/" < ../blog/head > ../html/"$newfile".html
   python -m markdown "$file" >> ../html/"$newfile".html
   [[ "$show_date_in_article" == "true" ]] && sed "s/XXX/$timestamp/" < ../blog/timestamp >> ../html/"$newfile".html
-  echo "<a href='/'>Back</a>" >> ../html/"$newfile".html
+  echo "<a href='/' id='back'>Back</a>" >> ../html/"$newfile".html
+  cat ../blog/bottom >> ../html/"$newfile".html
+  (( count++ ))
+  printbar $count $total "  Markdown conversion"
+done
+for file in $(sort -r list); do
+  title="$(head -n1 "$file")"
+  newfile="$(echo "$title" | tr 'A-Z ' 'a-z-' | tr -dc 'a-z-')" #with no extension
+  timestamp="$(date "$dateformat" -d @${file:2:10})"
+  sed "s/XXX/$title/" < ../blog/head > ../html/"$newfile".html
+  python -m markdown "$file" >> ../html/"$newfile".html
+  [[ "$show_date_in_article" == "true" ]] && sed "s/XXX/$timestamp/" < ../blog/timestamp >> ../html/"$newfile".html
+  echo "<a href='/' id='back'>Back</a>" >> ../html/"$newfile".html
   cat ../blog/bottom >> ../html/"$newfile".html
   (( count++ ))
   printbar $count $total "  Markdown conversion"
@@ -110,7 +134,10 @@ echo
 
 #create index and finish
 cd ..
-cat blog/indexhead temp/index blog/indexbottom > index.html
+sed -i "s/XXX/index/" blog/head
+cp blog/defaults/bottom blog/bottom
+sed -i "s/XXX/$owner/" blog/bottom
+cat blog/head temp/index blog/bottom > index.html
 rm -rf temp
-[[ "$gitplugin" == "true" ]] && git add -A && git commit -m "$(date)" && git push
+[[ "$gitplugin" == "true" ]] && git add -A && git commit -m "$message" && git push
 

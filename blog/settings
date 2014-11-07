@@ -1,4 +1,6 @@
 title="izabera's blog"
+owner=izabera
+dateformat='+%c'
 disqusplugin=true
 disqus_name=izablog
 preview_words=7
